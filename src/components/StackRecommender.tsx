@@ -32,7 +32,7 @@ export function StackRecommender() {
   useEffect(() => {
     const loadRecommendations = async () => {
       try {
-        const data = await getTechStack('idea-1');
+        const data = await getTechStack(['idea-1']);
         setRecommendations(data);
       } catch (error) {
         console.error('Failed to load tech stack:', error);

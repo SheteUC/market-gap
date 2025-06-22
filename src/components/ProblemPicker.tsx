@@ -34,7 +34,7 @@ export function ProblemPicker() {
         const data = await getGapList();
         // Sort by opportunity score and take top gaps
         const topGaps = data
-          .sort((a, b) => b.opportunityScore - a.opportunityScore)
+          .sort((a: any, b: any) => b.opportunityScore - a.opportunityScore)
           .slice(0, 6);
         setGaps(topGaps);
       } catch (error) {

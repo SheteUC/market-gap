@@ -4,7 +4,7 @@ import { Select, Button, Row, Col, message, Spin } from 'antd';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { RightOutlined } from '@ant-design/icons';
-import { getConsultingGroups } from '@/utils/api';
+import { CONSULTING_FIRMS } from '@/constants';
 import type { ConsultingGroup } from '@/types';
 
 export function ConsultingGroupSelector() {
@@ -16,18 +16,15 @@ export function ConsultingGroupSelector() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const loadGroups = async () => {
-      try {
-        const data = await getConsultingGroups();
-        setGroups(data);
-      } catch (error) {
-        message.error('Failed to load consulting groups');
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    loadGroups();
+    // Convert CONSULTING_FIRMS to the expected format
+    const groupsData = CONSULTING_FIRMS.map((name, index) => ({
+      id: String(index + 1),
+      name,
+      reports: Math.floor(Math.random() * 50) + 10, // Mock report count
+      description: `Leading global consulting firm specializing in strategic advisory services`, // Add required description
+    }));
+    setGroups(groupsData);
+    setInitialLoading(false);
   }, []);
 
   const handleNext = async () => {
@@ -40,49 +37,49 @@ export function ConsultingGroupSelector() {
     const hide = message.loading('Initializing agents and starting research...', 0);
 
     try {
-      // Step 1: Initialize agents
-      console.log('🚀 Initializing agents...');
-      const initResponse = await fetch('/api/agents/initialize', {
+      // Step 1: Initialize simplified orchestrator
+      console.log('🚀 Initializing simplified orchestrator...');
+      const initResponse = await fetch('/api/simple-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'initialize' }),
       });
 
       if (!initResponse.ok) {
-        throw new Error('Failed to initialize agents');
+        throw new Error('Failed to initialize orchestrator');
       }
 
       const initData = await initResponse.json();
-      console.log('✅ Agents initialized:', initData);
+      console.log('✅ Orchestrator initialized:', initData);
 
-      // Step 2: Start PDF crawling
-      console.log('📄 Starting PDF crawling...');
+      // Step 2: Start workflow with selected consulting group
+      console.log('📄 Starting workflow...');
       
       // Get the selected consulting group details
       const selectedGroupData = groups.find(g => g.id === selectedGroup);
-      const firmNames = selectedGroupData ? [selectedGroupData.name] : ['McKinsey & Company'];
       
-      const researchResponse = await fetch('/api/agents/research', {
+      const workflowResponse = await fetch('/api/simple-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'crawl_pdfs',
-          firmNames: firmNames,
+          action: 'start_workflow',
+          consulting_group: selectedGroupData?.name || 'McKinsey & Company',
         }),
       });
 
-      if (!researchResponse.ok) {
-        throw new Error('Failed to start research');
+      if (!workflowResponse.ok) {
+        throw new Error('Failed to start workflow');
       }
 
-      const researchData = await researchResponse.json();
-      console.log('✅ Research started:', researchData);
+      const workflowData = await workflowResponse.json();
+      console.log('✅ Workflow started:', workflowData);
 
       hide();
-      message.success('Research started successfully! Analyzing documents...');
+      message.success('Workflow started successfully!');
       setLoading(false);
       
-      // Navigate to research page with selected group info
-      router.push(`/research?group=${selectedGroup}&firms=${firmNames.join(',')}`);
+      // Navigate to simplified test page
+      router.push('/simple');
 
     } catch (error) {
       hide();

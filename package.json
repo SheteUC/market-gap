@@ -9,11 +9,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "prepare": "husky install",
-    "demo": "npx ts-node --project tsconfig.node.json src/scripts/demo.ts",
-    "test:agents": "npx ts-node --project tsconfig.node.json src/scripts/quickTest.ts",
-    "test:persistence": "npx ts-node --project tsconfig.node.json src/scripts/testPersistence.ts",
-    "agents:init": "npx ts-node --project tsconfig.node.json -e \"require('./src/scripts/demo.ts').runDemo()\"",
-    "agents:test": "npx ts-node --project tsconfig.node.json -e \"require('./src/utils/agentManager.ts').agentManager.initializeAllAgents().then(console.log)\""
+    "test:simple": "npx tsx src/scripts/test-simple.ts",
+    "test:letta": "npx tsx src/scripts/test-letta-agents.ts"
   },
   "dependencies": {
     "@ant-design/colors": "^7.1.0",
@@ -28,6 +25,7 @@
     "ai": "^4.3.16",
     "antd": "^5.21.4",
     "dayjs": "^1.11.13",
+    "dotenv": "^16.5.0",
     "next": "14.2.30",
     "react": "18.2.0",
     "react-dom": "18.2.0",
