@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   FileSearchOutlined, 
   ScanOutlined, 
-  AnalysisOutlined, 
+  BarChartOutlined, 
   CheckCircleOutlined 
 } from '@ant-design/icons';
 
@@ -26,7 +26,7 @@ const steps = [
   {
     title: 'Analyzing Patterns',
     description: 'Identifying market gaps and trends',
-    icon: <AnalysisOutlined />,
+    icon: <BarChartOutlined />,
   },
   {
     title: 'Complete',

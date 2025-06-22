@@ -1,24 +1,24 @@
 'use client';
 
-import { Card, Typography } from 'antd';
+import { Typography } from 'antd';
 import { HackathonForm } from '@/components/HackathonForm';
-import { PhaseBreadcrumbs } from '@/components/PhaseBreadcrumbs';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
 export default function HackathonPage() {
   return (
-    <div>
-      <PhaseBreadcrumbs current="hackathon" />
-      <Card style={{ maxWidth: 800, margin: '0 auto', marginTop: 24 }}>
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 16 }}>
-          Hackathon Optimization
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <Title level={1} style={{ 
+          color: '#1e293b',
+          marginBottom: '12px',
+          fontWeight: 700
+        }}>
+          Hackathon Setup
         </Title>
-        <Paragraph style={{ textAlign: 'center', fontSize: 16, marginBottom: 32 }}>
-          Optimize your solution for specific hackathon requirements and categories.
-        </Paragraph>
-        <HackathonForm />
-      </Card>
+      </div>
+
+      <HackathonForm />
     </div>
   );
 }

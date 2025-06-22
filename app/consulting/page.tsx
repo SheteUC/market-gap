@@ -1,24 +1,24 @@
 'use client';
 
-import { Card, Typography } from 'antd';
+import { Typography } from 'antd';
 import { ConsultingGroupSelector } from '@/components/ConsultingGroupSelector';
-import { PhaseBreadcrumbs } from '@/components/PhaseBreadcrumbs';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
 export default function ConsultingPage() {
   return (
-    <div>
-      <PhaseBreadcrumbs current="consulting" />
-      <Card style={{ maxWidth: 800, margin: '0 auto', marginTop: 24 }}>
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 16 }}>
-          Select Consulting Group
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <Title level={1} style={{ 
+          color: '#1e293b',
+          marginBottom: '12px',
+          fontWeight: 700
+        }}>
+          Choose Data Sources
         </Title>
-        <Paragraph style={{ textAlign: 'center', fontSize: 16, marginBottom: 32 }}>
-          Choose the consulting group whose insights you want to analyze.
-        </Paragraph>
-        <ConsultingGroupSelector />
-      </Card>
+      </div>
+
+      <ConsultingGroupSelector />
     </div>
   );
 }

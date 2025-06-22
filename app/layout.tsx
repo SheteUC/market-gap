@@ -1,18 +1,10 @@
-'use client';
-
-import { ConfigProvider, Layout } from 'antd';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import type { Metadata } from 'next';
-import { TopNav } from '@/components/TopNav';
-import { WebsocketProvider } from '@/context/WebsocketContext';
+import { ClientLayout } from './client-layout';
 
-const theme = {
-  token: {
-    colorPrimary: '#1677ff',
-    colorSuccess: '#52c41a',
-    colorError: '#ff4d4f',
-    borderRadius: 8,
-  },
+export const metadata: Metadata = {
+  title: 'MarketGap AI',
+  description: 'AI-powered market gap analysis and business strategy platform',
 };
 
 export default function RootLayout({
@@ -24,16 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AntdRegistry>
-          <ConfigProvider theme={theme}>
-            <WebsocketProvider>
-              <Layout style={{ minHeight: '100vh' }}>
-                <TopNav />
-                <Layout.Content style={{ padding: '24px' }}>
-                  {children}
-                </Layout.Content>
-              </Layout>
-            </WebsocketProvider>
-          </ConfigProvider>
+          <ClientLayout>{children}</ClientLayout>
         </AntdRegistry>
       </body>
     </html>

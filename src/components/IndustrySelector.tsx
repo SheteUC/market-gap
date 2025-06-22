@@ -1,21 +1,23 @@
 'use client';
 
-import { Select, Button, Row, Col, message } from 'antd';
+import { Button, Row, Col, message, Card, Typography } from 'antd';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { RightOutlined } from '@ant-design/icons';
+import { RightOutlined, CheckCircleOutlined } from '@ant-design/icons';
+
+const { Text } = Typography;
 
 const industries = [
-  { value: 'fintech', label: 'Financial Technology' },
-  { value: 'healthcare', label: 'Healthcare & Medical' },
-  { value: 'edtech', label: 'Education Technology' },
-  { value: 'retail', label: 'Retail & E-commerce' },
-  { value: 'logistics', label: 'Logistics & Supply Chain' },
-  { value: 'energy', label: 'Energy & Sustainability' },
-  { value: 'real-estate', label: 'Real Estate & PropTech' },
-  { value: 'manufacturing', label: 'Manufacturing & Industry 4.0' },
-  { value: 'agriculture', label: 'Agriculture & FoodTech' },
-  { value: 'entertainment', label: 'Entertainment & Media' },
+  { value: 'fintech', label: 'FinTech', emoji: '💳' },
+  { value: 'healthcare', label: 'Healthcare', emoji: '🏥' },
+  { value: 'edtech', label: 'EdTech', emoji: '📚' },
+  { value: 'retail', label: 'Retail', emoji: '🛒' },
+  { value: 'logistics', label: 'Logistics', emoji: '🚚' },
+  { value: 'energy', label: 'Energy', emoji: '🌱' },
+  { value: 'real-estate', label: 'Real Estate', emoji: '🏢' },
+  { value: 'manufacturing', label: 'Manufacturing', emoji: '🏭' },
+  { value: 'agriculture', label: 'Agriculture', emoji: '🌾' },
+  { value: 'entertainment', label: 'Entertainment', emoji: '🎬' },
 ];
 
 export function IndustrySelector() {
@@ -30,45 +32,77 @@ export function IndustrySelector() {
     }
 
     setLoading(true);
-    message.loading('Saving selection...', 1);
-
-    // Simulate API call
     setTimeout(() => {
-      message.success('Industry selected successfully');
+      message.success('Industry selected');
       setLoading(false);
       router.push('/consulting');
-    }, 1000);
+    }, 800);
   };
 
   return (
-    <Row gutter={[16, 16]}>
-      <Col span={24}>
-        <Select
-          size="large"
-          placeholder="Select an industry to analyze"
-          style={{ width: '100%' }}
-          value={selectedIndustry}
-          onChange={setSelectedIndustry}
-          options={industries}
-          showSearch
-          filterOption={(input, option) =>
-            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-          }
-        />
-      </Col>
-      <Col span={24} style={{ textAlign: 'center', marginTop: 24 }}>
-        <Button
-          type="primary"
-          size="large"
-          loading={loading}
-          onClick={handleNext}
-          icon={<RightOutlined />}
-          disabled={!selectedIndustry}
-          aria-label="Proceed to consulting group selection"
-        >
-          Continue to Consulting Groups
-        </Button>
-      </Col>
-    </Row>
+    <div>
+      <Row gutter={[16, 16]} style={{ marginBottom: '32px' }}>
+        {industries.map((industry) => (
+          <Col xs={12} sm={8} lg={6} key={industry.value}>
+            <Card
+              size="small"
+              hoverable
+              onClick={() => setSelectedIndustry(industry.value)}
+              style={{
+                borderRadius: '8px',
+                border: selectedIndustry === industry.value ? '2px solid #6366f1' : '1px solid #e5e7eb',
+                backgroundColor: selectedIndustry === industry.value ? '#f8fafc' : 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textAlign: 'center',
+                height: '80px'
+              }}
+              bodyStyle={{ padding: '12px' }}
+            >
+              {selectedIndustry === industry.value && (
+                <CheckCircleOutlined style={{ 
+                  position: 'absolute', 
+                  top: '8px', 
+                  right: '8px',
+                  color: '#6366f1',
+                  fontSize: '14px'
+                }} />
+              )}
+              
+              <div style={{ fontSize: '24px', marginBottom: '4px' }}>
+                {industry.emoji}
+              </div>
+              <Text style={{ 
+                fontSize: '13px', 
+                color: selectedIndustry === industry.value ? '#6366f1' : '#374151',
+                fontWeight: selectedIndustry === industry.value ? 600 : 400
+              }}>
+                {industry.label}
+              </Text>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      {selectedIndustry && (
+        <div style={{ textAlign: 'center' }}>
+          <Button
+            type="primary"
+            size="large"
+            loading={loading}
+            onClick={handleNext}
+            icon={<RightOutlined />}
+            style={{
+              height: '44px',
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: 500
+            }}
+          >
+            Continue
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

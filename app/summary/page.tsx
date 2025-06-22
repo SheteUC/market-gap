@@ -1,24 +1,24 @@
 'use client';
 
-import { Card, Typography } from 'antd';
+import { Typography } from 'antd';
 import { ExportSummary } from '@/components/ExportSummary';
-import { PhaseBreadcrumbs } from '@/components/PhaseBreadcrumbs';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
 export default function SummaryPage() {
   return (
-    <div>
-      <PhaseBreadcrumbs current="summary" />
-      <Card style={{ maxWidth: 800, margin: '0 auto', marginTop: 24 }}>
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 16 }}>
-          Project Summary
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <Title level={1} style={{ 
+          color: '#1e293b',
+          marginBottom: '12px',
+          fontWeight: 700
+        }}>
+          Summary & Export
         </Title>
-        <Paragraph style={{ textAlign: 'center', fontSize: 16, marginBottom: 32 }}>
-          Review and export your complete market analysis and solution recommendations.
-        </Paragraph>
-        <ExportSummary />
-      </Card>
+      </div>
+
+      <ExportSummary />
     </div>
   );
 }

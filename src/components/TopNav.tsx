@@ -4,14 +4,14 @@ import { Layout, Menu, Progress, Badge } from 'antd';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { 
-  IndustryOutlined, 
+  BuildOutlined, 
   TeamOutlined, 
   SearchOutlined,
   BarChartOutlined,
   UsergroupAddOutlined,
   BulbOutlined,
   ExperimentOutlined,
-  CompareOutlined,
+  DiffOutlined,
   TrophyOutlined,
   ApiOutlined,
   FileTextOutlined
@@ -22,14 +22,14 @@ import { WebsocketStatus } from './WebsocketStatus';
 const { Header } = Layout;
 
 const menuItems = [
-  { key: '/industry', label: 'Industry', icon: <IndustryOutlined /> },
+  { key: '/industry', label: 'Industry', icon: <BuildOutlined /> },
   { key: '/consulting', label: 'Consulting', icon: <TeamOutlined /> },
   { key: '/research', label: 'Research', icon: <SearchOutlined /> },
   { key: '/gaps', label: 'Gaps', icon: <BarChartOutlined /> },
   { key: '/audience', label: 'Audience', icon: <UsergroupAddOutlined /> },
   { key: '/problems', label: 'Problems', icon: <BulbOutlined /> },
   { key: '/solutions', label: 'Solutions', icon: <ExperimentOutlined /> },
-  { key: '/competitors', label: 'Competitors', icon: <CompareOutlined /> },
+  { key: '/competitors', label: 'Competitors', icon: <DiffOutlined /> },
   { key: '/hackathon', label: 'Hackathon', icon: <TrophyOutlined /> },
   { key: '/tech-stack', label: 'Tech Stack', icon: <ApiOutlined /> },
   { key: '/summary', label: 'Summary', icon: <FileTextOutlined /> },

@@ -1,24 +1,29 @@
 'use client';
 
-import { Card, Typography } from 'antd';
+import { Typography, Steps } from 'antd';
 import { IndustrySelector } from '@/components/IndustrySelector';
-import { PhaseBreadcrumbs } from '@/components/PhaseBreadcrumbs';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
+
 
 export default function IndustryPage() {
   return (
-    <div>
-      <PhaseBreadcrumbs current="industry" />
-      <Card style={{ maxWidth: 800, margin: '0 auto', marginTop: 24 }}>
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 16 }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      {/* Simple Header */}
+      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <Title level={1} style={{ 
+          color: '#1e293b',
+          marginBottom: '12px',
+          fontWeight: 700
+        }}>
           Choose Your Industry
         </Title>
-        <Paragraph style={{ textAlign: 'center', fontSize: 16, marginBottom: 32 }}>
-          Select the industry you want to analyze for market gaps and opportunities.
-        </Paragraph>
-        <IndustrySelector />
-      </Card>
+        
+      
+      </div>
+
+      {/* Main Selection */}
+      <IndustrySelector />
     </div>
   );
 }

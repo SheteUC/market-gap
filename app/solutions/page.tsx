@@ -1,24 +1,24 @@
 'use client';
 
-import { Card, Typography } from 'antd';
+import { Typography } from 'antd';
 import { SolutionWorkbench } from '@/components/SolutionWorkbench';
-import { PhaseBreadcrumbs } from '@/components/PhaseBreadcrumbs';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
 export default function SolutionsPage() {
   return (
-    <div>
-      <PhaseBreadcrumbs current="solutions" />
-      <Card style={{ marginTop: 24 }}>
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 16 }}>
-          Solution Development
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <Title level={1} style={{ 
+          color: '#1e293b',
+          marginBottom: '12px',
+          fontWeight: 700
+        }}>
+          Generate Solutions
         </Title>
-        <Paragraph style={{ textAlign: 'center', fontSize: 16, marginBottom: 32 }}>
-          Iteratively develop and refine solutions for your chosen problem.
-        </Paragraph>
-        <SolutionWorkbench />
-      </Card>
+      </div>
+
+      <SolutionWorkbench />
     </div>
   );
 }
