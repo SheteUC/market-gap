@@ -56,6 +56,7 @@ graph TD
 6. **competitorResearch (wait)** – evaluate novelty
 7. If hackathon URL → **hackathonParser** then **techStackAdvisor**
 8. Emit `workflow_complete`
+9. Celebrate 🚀
 
 ## 🛠️ Setup & Installation
 
@@ -121,12 +122,18 @@ curl http://localhost:3000/api/simple-workflow?action=status
 market-gap/
 ├── src/
 │   ├── agents/
-│   │   └── simple-orchestrator.ts    # Main Letta-native orchestrator
-│   ├── scripts/
-│   │   └── test-simple.ts           # Automated testing
-│   ├── components/                  # React UI components
-│   ├── context/                     # React context
-│   └── types/                       # TypeScript types
+│   │   ├── orchestrator/            # Manager agent
+│   │   ├── marketResearch/          # Worker agents
+│   │   ├── marketAnalyzer/
+│   │   ├── socialListener/
+│   │   ├── solutionGenerator/
+│   │   └── competitorResearch/
+│   └── simple-orchestrator.ts    # Main Letta-native orchestrator
+├── scripts/
+│   └── test-simple.ts           # Automated testing
+├── components/                  # React UI components
+├── context/                     # React context
+└── types/                       # TypeScript types
 ├── app/
 │   ├── api/
 │   │   └── simple-workflow/         # Single API endpoint
