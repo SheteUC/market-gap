@@ -23,7 +23,6 @@ const { Header } = Layout;
 
 const menuItems = [
   { key: '/industry', label: 'Industry', icon: <BuildOutlined /> },
-  { key: '/consulting', label: 'Consulting', icon: <TeamOutlined /> },
   { key: '/research', label: 'Research', icon: <SearchOutlined /> },
   { key: '/gaps', label: 'Gaps', icon: <BarChartOutlined /> },
   { key: '/audience', label: 'Audience', icon: <UsergroupAddOutlined /> },

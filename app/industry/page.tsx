@@ -3,7 +3,7 @@
 import { Typography, Steps } from 'antd';
 import { IndustrySelector } from '@/components/IndustrySelector';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 
 export default function IndustryPage() {
@@ -18,8 +18,9 @@ export default function IndustryPage() {
         }}>
           Choose Your Industry
         </Title>
-        
-      
+        <Text type="secondary" style={{ fontSize: '16px' }}>
+          We'll analyze market research from leading consulting firms to identify opportunities in your chosen industry
+        </Text>
       </div>
 
       {/* Main Selection */}

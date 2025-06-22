@@ -37,3 +37,6 @@ next-env.d.ts
 
 # cursor rules
 .cursor/rules
+
+# agent persistence
+.agent-ids.json

@@ -1,11 +1,12 @@
 'use client';
 
-import { Typography } from 'antd';
+import { Typography, Spin } from 'antd';
 import { DocsCrawlerProgress } from '@/components/DocsCrawlerProgress';
+import { Suspense } from 'react';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
-export default function ResearchPage() {
+function ResearchContent() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '48px' }}>
@@ -14,11 +15,20 @@ export default function ResearchPage() {
           marginBottom: '12px',
           fontWeight: 700
         }}>
-          Document Analysis
+          Market Research Analysis
         </Title>
+        <Text type="secondary" style={{ fontSize: '16px' }}>
+          Analyzing consulting firm reports and white papers to identify market opportunities
+        </Text>
       </div>
 
-      <DocsCrawlerProgress />
+      <Suspense fallback={<div style={{ textAlign: 'center', padding: '40px' }}><Spin size="large" /></div>}>
+        <DocsCrawlerProgress />
+      </Suspense>
     </div>
   );
+}
+
+export default function ResearchPage() {
+  return <ResearchContent />;
 }

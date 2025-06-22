@@ -1,11 +1,12 @@
 'use client';
 
-import { Typography } from 'antd';
+import { Typography, Spin } from 'antd';
 import { ConsultingGroupSelector } from '@/components/ConsultingGroupSelector';
+import { Suspense } from 'react';
 
 const { Title } = Typography;
 
-export default function ConsultingPage() {
+function ConsultingContent() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '48px' }}>
@@ -18,7 +19,13 @@ export default function ConsultingPage() {
         </Title>
       </div>
 
-      <ConsultingGroupSelector />
+      <Suspense fallback={<div style={{ textAlign: 'center', padding: '40px' }}><Spin size="large" /></div>}>
+        <ConsultingGroupSelector />
+      </Suspense>
     </div>
   );
+}
+
+export default function ConsultingPage() {
+  return <ConsultingContent />;
 }
