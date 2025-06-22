@@ -89,28 +89,18 @@ LETTA_BASE_URL=https://api.letta.com
 ### Option 1: Web Interface
 ```bash
 npm run dev
-# Navigate to http://localhost:3000/simple
+# Navigate to http://localhost:3000/workflow
 ```
 
-### Option 2: Test Script  
+### Option 2: API Direct
 ```bash
-npm run test:simple
-```
-
-### Option 3: API Direct
-```bash
-# Initialize orchestrator
-curl -X POST http://localhost:3000/api/simple-workflow \
-  -H "Content-Type: application/json" \
-  -d '{"action": "initialize"}'
-
 # Start workflow
-curl -X POST http://localhost:3000/api/simple-workflow \
+curl -X POST http://localhost:3000/api/letta-workflow \
   -H "Content-Type: application/json" \
-  -d '{"action": "start_workflow", "industry": "FinTech"}'
+  -d '{"action": "start", "industry": "FinTech"}'
 
-# Get status
-curl http://localhost:3000/api/simple-workflow?action=status
+# Check status
+curl http://localhost:3000/api/letta-workflow?action=status
 ```
 
 ## 📁 Project Structure
@@ -126,15 +116,13 @@ market-gap/
 │   │   ├── solutionGenerator/
 │   │   └── competitorResearch/
 │   └── simple-orchestrator.ts    # Main Letta-native orchestrator
-├── scripts/
-│   └── test-simple.ts           # Automated testing
 ├── components/                  # React UI components
 ├── context/                     # React context
 └── types/                       # TypeScript types
 ├── app/
 │   ├── api/
-│   │   └── simple-workflow/         # Single API endpoint
-│   ├── simple/                      # Test page
+│   │   └── letta-workflow/         # Single API endpoint
+│   ├── workflow/                   # Dashboard page
 │   └── [other pages]/              # Additional UI pages
 ├── README.md                        # This file
 └── SIMPLIFIED_APPROACH.md          # Detailed documentation
@@ -142,17 +130,12 @@ market-gap/
 
 ## 🧪 Testing
 
-All testing is now simplified to a single command:
-```bash
-npm run test:simple
-```
+You can validate everything is wired up in two ways:
 
-This will:
-1. ✅ Initialize the Orchestrator Agent with shared memory blocks
-2. ✅ Start a workflow for the FinTech industry  
-3. ✅ Verify shared memory blocks are working
-4. ✅ Test memory block updates
-5. ✅ Display comprehensive status information
+1. **Web UI** – Run `npm run dev` and watch the workflow update live at `http://localhost:3000/workflow`.
+2. **Direct API** – Use the cURL commands in the Quick-Start section to start a workflow and poll for status.
+
+_No extra scripts are required._
 
 ## 🔧 How It Works
 
@@ -169,8 +152,8 @@ This will:
 - 10 MB block cap with automatic archival
 
 ### **Built-in Letta Tools**
-- `web_search` - For research tasks
-- `run_code` - For data processing
+- `web_search` – For research tasks
+- `run_code` – For data processing
 - Native multi-agent communication tools
 - No custom tools needed
 
@@ -186,9 +169,9 @@ This will:
 
 ## 📚 Documentation
 
-- **[SIMPLIFIED_APPROACH.md](./SIMPLIFIED_APPROACH.md)** - Detailed technical documentation
-- **[Letta Multi-Agent Systems](https://docs.letta.com/guides/agents/multi-agent)** - Official Letta docs
-- **[Multi-Agent Shared Memory](https://docs.letta.com/guides/agents/multi-agent-shared-memory)** - Shared memory guide
+- **[SIMPLIFIED_APPROACH.md](./SIMPLIFIED_APPROACH.md)** – Detailed technical documentation
+- **[Letta Multi-Agent Systems](https://docs.letta.com/guides/agents/multi-agent)** – Official Letta docs
+- **[Multi-Agent Shared Memory](https://docs.letta.com/guides/agents/multi-agent-shared-memory)** – Shared memory guide
 
 ## ✅ Key Features
 
@@ -196,22 +179,21 @@ This will:
 - ✅ **Shared Memory**: Proper shared memory blocks following workspace rules
 - ✅ **Manager-Worker**: Single orchestrator manages worker agents  
 - ✅ **Exact Workflow**: Follows 8-step sequence precisely
-- ✅ **Simple Testing**: Single command testing
+- ✅ **Dashboard & API Testing**: No extra scripts required
 - ✅ **Clean Architecture**: No unnecessary complexity
 - ✅ **Proper Documentation**: Clear, comprehensive guides
 
 ## 🎯 Next Steps
 
-1. Run `npm run test:simple` to verify everything works
-2. Open http://localhost:3000/simple to test the web interface
-3. Check shared memory blocks are updating correctly
-4. Extend with additional worker agents as needed
-5. Deploy to production using Letta Cloud
+1. Open http://localhost:3000/workflow and start a new workflow.
+2. Check shared memory blocks are updating correctly via the dashboard or API.
+3. Extend with additional worker agents as needed.
+4. Deploy to production using Letta Cloud.
 
 ## ⚠️ Status: Backend Stable · Front-End WIP
 
 The multi-agent **backend** (Orchestrator → Market-Research → Market-Analyzer → Social-Listener) is fully functional and passes all automated tests.  
-However, the **Next.js front-end is still under heavy development** – navigation works, but many pages show placeholder data and WebSocket updates are stubbed. Use the provided scripts (`npm run test:simple`) or the API endpoints to exercise the workflow until the UI is finished.
+However, the **Next.js front-end is still under heavy development** – navigation works, but many pages show placeholder data and WebSocket updates are stubbed. Use the dashboard or the API endpoints to exercise the workflow until the UI is finished.
 
 ## 🔄 Idea Loop (Hackathon Demo)
 
