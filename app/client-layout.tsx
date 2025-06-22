@@ -133,23 +133,14 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
             />
           </Sider>
 
-          <Layout>
-            <Content style={{ 
-              padding: '24px',
-              background: '#f8fafc'
-            }}>
-              <div style={{ 
-                maxWidth: '1200px', 
-                margin: '0 auto',
-                background: 'white',
-                borderRadius: '8px',
-                padding: '24px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}>
-                {children}
-              </div>
-            </Content>
-          </Layout>
+          <div style={{ 
+            flex: 1,
+            padding: '32px',
+            background: '#f8fafc',
+            minHeight: '100vh'
+          }}>
+            {children}
+          </div>
         </Layout>
       </WebsocketProvider>
     </ConfigProvider>
