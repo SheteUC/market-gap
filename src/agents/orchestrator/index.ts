@@ -13,6 +13,8 @@ import {
   createMarketAnalyzerAgent,
   runMarketAnalysis,
 } from '../marketAnalyzer';
+import { createSolutionGeneratorAgent, runSolutionIteration } from '../solutionGenerator';
+import { createCompetitorResearchAgent, runCompetitorCheck } from '../competitorResearch';
 
 export interface OrchestratorConfig {
   lettaApiKey: string;
@@ -25,6 +27,8 @@ export class OrchestratorAgent {
   private sharedBlockIds: Map<string, string> = new Map();
   private marketResearchAgentId: string | null = null;
   private marketAnalyzerAgentId: string | null = null;
+  private solutionGeneratorAgentId: string | null = null;
+  private competitorResearchAgentId: string | null = null;
 
   constructor(config: OrchestratorConfig) {
     this.client = new LettaClient({
@@ -54,6 +58,26 @@ export class OrchestratorAgent {
           {
             label: 'human',
             value: 'Working with MarketGap AI system to identify market opportunities through consulting firm research.',
+          },
+          {
+            label: 'audience_signals',
+            value: 'No audience data yet',
+            description: 'Social signals and audience personas for identified gaps'
+          },
+          {
+            label: 'idea_history',
+            value: '[]',
+            description: 'All brainstorming iterations',
+          },
+          {
+            label: 'final_ideas',
+            value: '[]',
+            description: 'Approved novel ideas',
+          },
+          {
+            label: 'competitor_table',
+            value: '[]',
+            description: 'Competitor similarity scores',
           },
           {
             label: 'workflow_state',
@@ -111,11 +135,6 @@ export class OrchestratorAgent {
         value: 'No gaps identified yet',
         description: 'Identified market gaps with severity and opportunity scores'
       },
-      {
-        label: 'audience_signals',
-        value: 'No audience data yet',
-        description: 'Social signals and audience personas for identified gaps'
-      }
     ];
 
     for (const spec of blockSpecs) {
@@ -146,7 +165,10 @@ export class OrchestratorAgent {
     // Phase 2: Gap analysis using Market-Analyzer worker
     await this.runGapAnalysis(industry);
 
-    // Phase 3: Notify Orchestrator LLM to continue to solution generation (future implementation)
+    // Phase 3: Ideation loop
+    await this.runIdeationLoop(industry);
+
+    // Phase 4: Notify Orchestrator LLM to continue to solution generation (future implementation)
     try {
       const response = await this.client.agents.messages.create(
         this.agentId,
@@ -155,7 +177,7 @@ export class OrchestratorAgent {
             {
               role: 'user',
               content:
-                `Gap analysis complete for ${industry}. The gap_list block is now populated. Proceed with socialListener and solutionGenerator phases.`,
+                `Ideation loop completed for ${industry}. The final_ideas block is now populated. Proceed with socialListener and solutionGenerator phases.`,
             },
           ],
         },
@@ -410,6 +432,60 @@ Feel free to parallelise downloads using run_code (e.g. Promise.all in JS) and w
       };
     } catch (error) {
       return { error: (error as Error).message };
+    }
+  }
+
+  private async runIdeationLoop(industry: string): Promise<void> {
+    if (!this.solutionGeneratorAgentId) {
+      this.solutionGeneratorAgentId = await createSolutionGeneratorAgent(
+        this.client,
+        Array.from(this.sharedBlockIds.values()),
+      );
+    }
+
+    if (!this.competitorResearchAgentId) {
+      this.competitorResearchAgentId = await createCompetitorResearchAgent(
+        this.client,
+        Array.from(this.sharedBlockIds.values()),
+      );
+    }
+
+    const MAX_ITER = 6;
+    for (let iter = 1; iter <= MAX_ITER; iter++) {
+      console.log(`💡 Solution iteration ${iter}`);
+      await runSolutionIteration(this.client, this.solutionGeneratorAgentId, iter);
+
+      // Retrieve final_ideas block
+      const ideasBlockId = this.sharedBlockIds.get('final_ideas');
+      if (!ideasBlockId) break;
+      const block = await this.client.blocks.retrieve(ideasBlockId);
+      let ideas: any[] = [];
+      try { ideas = JSON.parse(block.value || '[]'); } catch {}
+      if (ideas.length === 0) {
+        console.log('🛑 No qualifying ideas generated, stopping loop');
+        break;
+      }
+
+      // Check novelty for each idea title
+      let novel = true;
+      for (const idea of ideas) {
+        const resp = await runCompetitorCheck(
+          this.client,
+          this.competitorResearchAgentId,
+          idea.title || idea.id,
+          industry,
+        );
+
+        // Very naive similarity extraction placeholder
+        const sim = (resp.messages as any[]).find((m: any) => m.messageType === 'assistant_message')?.content?.match(/similarity: ([0-9\.]+)/i);
+        const score = sim ? parseFloat(sim[1]) : 1;
+        if (score >= 0.8) novel = false;
+      }
+
+      if (novel) {
+        console.log('🎉 Novel ideas found – exiting ideation loop');
+        break;
+      }
     }
   }
 } 
