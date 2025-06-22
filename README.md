@@ -48,15 +48,12 @@ graph TD
 - `final_ideas` (128 KB) - Approved novel ideas
 
 ### **Exact Workflow Sequence**
-1. **marketResearch (async)** – crawl PDFs from consulting firms
-2. **marketAnalyzer (wait)** – produce `gap_list`
-3. **socialListener (wait)** – write combined audience & Google insights to `audience_signals`
-4. Push `problem_queue` to UI → wait for user choice
-5. **solutionGenerator (wait)** – iterative brainstorming loop
-6. **competitorResearch (wait)** – evaluate novelty
-7. If hackathon URL → **hackathonParser** then **techStackAdvisor**
-8. Emit `workflow_complete`
-9. Celebrate 🚀
+1. **marketResearch (async)** – crawl PDFs from consulting firms  
+2. **marketAnalyzer (wait)** – produce `gap_list`  
+3. **socialListener (wait)** – write combined audience & Google insights to `audience_signals`  
+4. **solutionGenerator (wait)** – brainstorm first batch of ideas → `final_ideas`  
+5. (Competitor check skipped in demo)  
+6. Emit `workflow_complete` and show ideas on dashboard
 
 ## 🛠️ Setup & Installation
 
@@ -215,6 +212,10 @@ This will:
 
 The multi-agent **backend** (Orchestrator → Market-Research → Market-Analyzer → Social-Listener) is fully functional and passes all automated tests.  
 However, the **Next.js front-end is still under heavy development** – navigation works, but many pages show placeholder data and WebSocket updates are stubbed. Use the provided scripts (`npm run test:simple`) or the API endpoints to exercise the workflow until the UI is finished.
+
+## 🔄 Idea Loop (Hackathon Demo)
+
+For demo speed we run **one** Solution-Generator pass and stop. Novelty & competitor checks can be re-enabled after the event.
 
 ---
 

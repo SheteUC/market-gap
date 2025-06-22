@@ -443,49 +443,9 @@ Feel free to parallelise downloads using run_code (e.g. Promise.all in JS) and w
       );
     }
 
-    if (!this.competitorResearchAgentId) {
-      this.competitorResearchAgentId = await createCompetitorResearchAgent(
-        this.client,
-        Array.from(this.sharedBlockIds.values()),
-      );
-    }
+    console.log('💡 Generating initial solution proposals');
+    await runSolutionIteration(this.client, this.solutionGeneratorAgentId, 1);
 
-    const MAX_ITER = 6;
-    for (let iter = 1; iter <= MAX_ITER; iter++) {
-      console.log(`💡 Solution iteration ${iter}`);
-      await runSolutionIteration(this.client, this.solutionGeneratorAgentId, iter);
-
-      // Retrieve final_ideas block
-      const ideasBlockId = this.sharedBlockIds.get('final_ideas');
-      if (!ideasBlockId) break;
-      const block = await this.client.blocks.retrieve(ideasBlockId);
-      let ideas: any[] = [];
-      try { ideas = JSON.parse(block.value || '[]'); } catch {}
-      if (ideas.length === 0) {
-        console.log('🛑 No qualifying ideas generated, stopping loop');
-        break;
-      }
-
-      // Check novelty for each idea title
-      let novel = true;
-      for (const idea of ideas) {
-        const resp = await runCompetitorCheck(
-          this.client,
-          this.competitorResearchAgentId,
-          idea.title || idea.id,
-          industry,
-        );
-
-        // Very naive similarity extraction placeholder
-        const sim = (resp.messages as any[]).find((m: any) => m.messageType === 'assistant_message')?.content?.match(/similarity: ([0-9\.]+)/i);
-        const score = sim ? parseFloat(sim[1]) : 1;
-        if (score >= 0.8) novel = false;
-      }
-
-      if (novel) {
-        console.log('🎉 Novel ideas found – exiting ideation loop');
-        break;
-      }
-    }
+    console.log('✅ Solutions generated and stored in final_ideas – competitor analysis disabled for demo.');
   }
 } 
