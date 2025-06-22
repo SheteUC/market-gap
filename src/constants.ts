@@ -6,7 +6,6 @@
 export const CONSULTING_FIRMS = [
   'McKinsey & Company',
   'Boston Consulting Group',
-  'Bain & Company',
   'Accenture',
   'Deloitte Consulting',
   'PwC Strategy&',

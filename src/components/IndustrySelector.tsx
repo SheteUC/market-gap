@@ -35,28 +35,14 @@ export function IndustrySelector() {
     setLoading(true);
     
     try {
-      // Step 1: Initialize the Simplified Orchestrator
-      console.log('🎯 Initializing Simplified Orchestrator...');
-      const initResponse = await fetch('/api/simple-workflow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'initialize' }),
-      });
-
-      if (!initResponse.ok) {
-        throw new Error('Failed to initialize Orchestrator');
-      }
-
-      const initData = await initResponse.json();
-      console.log('✅ Orchestrator initialized:', initData.data.orchestratorId);
-
-      // Step 2: Start workflow for selected industry
-      console.log('🔬 Starting workflow for', selectedIndustry);
-      const workflowResponse = await fetch('/api/simple-workflow', {
+      console.log(`🎯 Starting MarketGap workflow for ${selectedIndustry}...`);
+      
+      // Start the proper workflow: Orchestrator reviews tasks then delegates to Market Research
+      const workflowResponse = await fetch('/api/letta-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'start_workflow',
+          action: 'start',
           industry: selectedIndustry,
         }),
       });
@@ -68,10 +54,10 @@ export function IndustrySelector() {
       const workflowData = await workflowResponse.json();
       console.log('✅ Workflow started:', workflowData);
 
-      message.success(`MarketGap workflow started for ${selectedIndustry}!`);
+      message.success(`MarketGap workflow started for ${selectedIndustry}! Orchestrator is planning and delegating market research...`);
 
-      // Navigate to the simplified test page
-      router.push('/simple');
+      // Navigate to research page to see progress
+      router.push('/research');
 
     } catch (error) {
       console.error('❌ Error starting workflow:', error);

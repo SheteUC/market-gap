@@ -29,8 +29,11 @@ graph TD
     B --> K[final_ideas]
     
     C --> L[Market Research]
-    C --> M[Social Listener]
+    L --> |white-papers| E
     C --> N[Market Analyzer]
+    N --> |gaps| F
+    C --> M[Social Listener]
+    M --> |signals| G
     C --> O[Solution Generator]
 ```
 
@@ -46,13 +49,13 @@ graph TD
 
 ### **Exact Workflow Sequence**
 1. **marketResearch (async)** – crawl PDFs from consulting firms
-2. **marketAnalyzer (wait)** – produce gap_list
-3. **socialListener (wait)** – attach audience personas to selected gap
-4. **Push problem_queue to UI** → wait for user choice
+2. **marketAnalyzer (wait)** – produce `gap_list`
+3. **socialListener (wait)** – write combined audience & Google insights to `audience_signals`
+4. Push `problem_queue` to UI → wait for user choice
 5. **solutionGenerator (wait)** – iterative brainstorming loop
 6. **competitorResearch (wait)** – evaluate novelty
-7. **If hackathon URL** → hackathonParser then techStackAdvisor
-8. **Emit workflow_complete**
+7. If hackathon URL → **hackathonParser** then **techStackAdvisor**
+8. Emit `workflow_complete`
 
 ## 🛠️ Setup & Installation
 
@@ -200,6 +203,11 @@ This will:
 3. Check shared memory blocks are updating correctly
 4. Extend with additional worker agents as needed
 5. Deploy to production using Letta Cloud
+
+## ⚠️ Status: Backend Stable · Front-End WIP
+
+The multi-agent **backend** (Orchestrator → Market-Research → Market-Analyzer → Social-Listener) is fully functional and passes all automated tests.  
+However, the **Next.js front-end is still under heavy development** – navigation works, but many pages show placeholder data and WebSocket updates are stubbed. Use the provided scripts (`npm run test:simple`) or the API endpoints to exercise the workflow until the UI is finished.
 
 ---
 

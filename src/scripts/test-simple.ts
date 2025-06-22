@@ -56,7 +56,7 @@ async function testSimpleApproach() {
     // Step 5: Test shared memory block update
     console.log('📋 Step 5: Test Shared Memory Block Update');
     await orchestrator.updateSharedBlock('consulting_groups', 
-      'McKinsey,BCG,Bain,Accenture,Deloitte - Updated via test script');
+      'McKinsey,BCG,Accenture,Deloitte - Updated via test script');
     
     const finalStatus = await orchestrator.getWorkflowStatus();
     console.log('📊 Final Status (after memory update):');

@@ -39,7 +39,7 @@ export function ConsultingGroupSelector() {
     try {
       // Step 1: Initialize simplified orchestrator
       console.log('🚀 Initializing simplified orchestrator...');
-      const initResponse = await fetch('/api/simple-workflow', {
+      const initResponse = await fetch('/api/letta-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'initialize' }),
@@ -58,7 +58,7 @@ export function ConsultingGroupSelector() {
       // Get the selected consulting group details
       const selectedGroupData = groups.find(g => g.id === selectedGroup);
       
-      const workflowResponse = await fetch('/api/simple-workflow', {
+      const workflowResponse = await fetch('/api/letta-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

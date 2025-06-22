@@ -1,32 +1,30 @@
 /**
  * Orchestrator Agent - Manager Agent for MarketGap AI
  * 
- * Following agents.mdc specifications exactly:
- * - Manager-Worker pattern using Letta's built-in tools
- * - Uses send_message_to_agent_async and send_message_to_agent_wait 
- * - Manages shared memory blocks for workflow state
- * - Follows exact 8-step workflow sequence
+ * Properly implements Letta's manager-worker pattern using:
+ * - Built-in Letta tools (web_search, run_code, send_message_to_agent_async)
+ * - Shared memory blocks for coordination
+ * - Proper agent creation via SDK
  */
 
 import { LettaClient } from '@letta-ai/letta-client';
+import { createMarketResearchAgent } from '../marketResearch';
+import {
+  createMarketAnalyzerAgent,
+  runMarketAnalysis,
+} from '../marketAnalyzer';
 
 export interface OrchestratorConfig {
   lettaApiKey: string;
   lettaBaseUrl?: string;
 }
 
-export interface WorkflowStatus {
-  phase: string;
-  state: 'pending' | 'running' | 'completed' | 'partial' | 'failed';
-  details?: string;
-  timestamp: string;
-}
-
 export class OrchestratorAgent {
   private client: LettaClient;
   private agentId: string | null = null;
-  private sharedBlocks: Map<string, string> = new Map(); // label -> blockId
-  private workerAgents: Map<string, string> = new Map(); // name -> agentId
+  private sharedBlockIds: Map<string, string> = new Map();
+  private marketResearchAgentId: string | null = null;
+  private marketAnalyzerAgentId: string | null = null;
 
   constructor(config: OrchestratorConfig) {
     this.client = new LettaClient({
@@ -36,266 +34,275 @@ export class OrchestratorAgent {
   }
 
   /**
-   * Initialize the orchestrator and create shared memory blocks as per agents.mdc
+   * Initialize the Orchestrator agent with proper Letta architecture
    */
   async initialize(): Promise<string> {
-    console.log('🎯 Initializing Orchestrator Agent...');
+    console.log('🎯 Initializing Orchestrator Agent with Letta architecture...');
 
     try {
-      // Step 1: Create shared memory blocks first (as per memory block spec)
+      // Step 1: Create shared memory blocks first
       await this.createSharedMemoryBlocks();
 
-      // Step 2: Create orchestrator agent with proper persona and shared blocks
+      // Step 2: Create the orchestrator agent
       const agent = await this.client.agents.create({
         name: 'MarketGapOrchestrator',
         memoryBlocks: [
           {
             label: 'persona',
-            value: 'I am the Orchestrator Agent for MarketGap AI. I coordinate the workflow between all worker agents using Letta\'s built-in multi-agent tools: send_message_to_agent_async and send_message_to_agent_and_wait_for_reply. I manage the exact 8-step workflow sequence from the cursor rules.',
-            description: 'The orchestrator\'s role and capabilities'
+            value: 'I am the Orchestrator Agent for MarketGap AI. I manage the workflow: 1) research consulting firms, 2) analyze gaps, 3) generate solutions. I use web_search to find the latest 2 whitepapers from each consulting firm for a specific industry. I use send_message_to_agent_async to delegate tasks when needed.',
+          },
+          {
+            label: 'human',
+            value: 'Working with MarketGap AI system to identify market opportunities through consulting firm research.',
+          },
+          {
+            label: 'workflow_state',
+            value: 'Workflow state: initialized. Ready to execute MarketGap sequence.',
+            description: 'Tracks current workflow phase and progress'
           }
         ],
-        blockIds: Array.from(this.sharedBlocks.values()),
-        model: 'openai/gpt-4.1', // As specified in agents.mdc
+        // Attach shared memory blocks  
+        blockIds: Array.from(this.sharedBlockIds.values()),
+        // Use built-in Letta tools
+        tools: [
+          'web_search',                           // For researching consulting firms
+          'run_code',                             // For data processing
+          'send_message_to_agent_async',          // For multi-agent coordination
+        ],
+        model: 'openai/gpt-4o-mini',
         embedding: 'openai/text-embedding-3-small',
       });
 
       this.agentId = agent.id;
-
-      // Step 3: Attach multi-agent communication tools
-      await this.attachMultiAgentTools();
-
       console.log(`✅ Orchestrator Agent created: ${agent.id}`);
+      
       return agent.id;
 
     } catch (error) {
-      console.error('❌ Error initializing orchestrator:', error);
+      console.error('❌ Error initializing Orchestrator:', error);
       throw error;
     }
   }
 
   /**
-   * Create shared memory blocks exactly as specified in agents.mdc
+   * Create shared memory blocks for multi-agent coordination
    */
   private async createSharedMemoryBlocks(): Promise<void> {
-    console.log('📝 Creating shared memory blocks per agents.mdc...');
+    console.log('🧠 Creating shared memory blocks...');
 
-    const memoryBlocksSpec = [
+    const blockSpecs = [
       {
         label: 'consulting_groups',
         value: JSON.stringify([
-          'McKinsey & Company',
+          'McKinsey & Company', 
           'Boston Consulting Group', 
-          'Bain & Company',
-          'Accenture',
+          'Accenture', 
           'Deloitte'
         ]),
-        description: 'CSV/JSON of consulting firms (100 KB max)',
-        limit: 100000 // 100 KB
+        description: 'List of consulting firms for market research'
       },
       {
         label: 'consulting_docs',
-        value: 'No PDF documents processed yet.',
-        description: 'PDF chunks {tag, text} - written by Market-Research agent (10 MB max)',
-        limit: 10000000 // 10 MB
+        value: 'No research data yet',
+        description: 'Research data from consulting firm whitepapers'
       },
       {
         label: 'gap_list',
-        value: 'No gaps identified yet.',
-        description: 'Market gaps {id, title, severity, summary} - written by Market-Analyzer agent (256 KB max)',
-        limit: 256000 // 256 KB
+        value: 'No gaps identified yet',
+        description: 'Identified market gaps with severity and opportunity scores'
       },
       {
         label: 'audience_signals',
-        value: 'No audience signals collected yet.',
-        description: 'Social signals {platform, author, text, sentiment} - written by Social Listener agent (5 MB max)',
-        limit: 5000000 // 5 MB
-      },
-      {
-        label: 'problem_queue',
-        value: 'No problems queued yet.',
-        description: 'Ordered gaps sent to UI - written by Orchestrator (64 KB max)',
-        limit: 64000 // 64 KB
-      },
-      {
-        label: 'user_feedback',
-        value: 'No user feedback received yet.',
-        description: 'User feedback {problemId, action, notes} - read by Solution agent (64 KB max)',
-        limit: 64000 // 64 KB
-      },
-      {
-        label: 'idea_history',
-        value: 'No ideas generated yet.',
-        description: 'All brainstorming iterations - written by Solution agent (2 MB max)',
-        limit: 2000000 // 2 MB
-      },
-      {
-        label: 'final_ideas',
-        value: 'No final ideas approved yet.',
-        description: 'Approved novel ideas - written by Solution agent (128 KB max)',
-        limit: 128000 // 128 KB
-      },
-      {
-        label: 'competitor_table',
-        value: 'No competitor research done yet.',
-        description: 'Competitor analysis {ideaId, name, url, similarity} - written by Competitor Research agent (1 MB max)',
-        limit: 1000000 // 1 MB
-      },
-      {
-        label: 'constraints',
-        value: 'No hackathon constraints set.',
-        description: 'Hackathon constraints {requiredAPIs, judgingCriteria, resources} - written by Hackathon Parser agent (64 KB max)',
-        limit: 64000 // 64 KB
-      },
-      {
-        label: 'tech_stack',
-        value: 'No tech stack recommendations yet.',
-        description: 'Stack advice per idea - written by Tech-Stack Advisor agent (64 KB max)',
-        limit: 64000 // 64 KB
+        value: 'No audience data yet',
+        description: 'Social signals and audience personas for identified gaps'
       }
     ];
 
-    for (const blockSpec of memoryBlocksSpec) {
+    for (const spec of blockSpecs) {
       const block = await this.client.blocks.create({
-        label: blockSpec.label,
-        value: blockSpec.value,
-        description: blockSpec.description,
-        limit: blockSpec.limit
+        label: spec.label,
+        value: spec.value,
+        description: spec.description
       });
       
-      if (block.id) {
-        this.sharedBlocks.set(blockSpec.label, block.id);
-      }
-      console.log(`✅ Created shared block: ${blockSpec.label} (${block.id})`);
+      this.sharedBlockIds.set(spec.label, block.id!);
+      console.log(`✅ Created shared block: ${spec.label} (${block.id})`);
     }
   }
 
   /**
-   * Attach Letta's built-in multi-agent communication tools
+   * Execute the MarketGap workflow using built-in Letta tools
    */
-  private async attachMultiAgentTools(): Promise<void> {
-    if (!this.agentId) {
-      throw new Error('Agent not initialized');
-    }
-
-    // Attach the multi-agent tools as specified in Letta docs
-    const tools = [
-      'send_message_to_agent_async',           // For non-blocking tasks
-      'send_message_to_agent_and_wait_for_reply', // For blocking workflow steps  
-      'web_search',                            // For research
-      'run_code'                               // For data processing
-    ];
-
-    for (const toolName of tools) {
-      try {
-        // Note: In real implementation, these tools need to be properly created/attached
-        // This is a placeholder for the tool attachment logic
-        console.log(`📎 Attached tool: ${toolName}`);
-      } catch (error) {
-        console.warn(`⚠️ Could not attach tool ${toolName}:`, error);
-      }
-    }
-  }
-
-  /**
-   * Execute the MarketGap AI workflow following exact sequence from agents.mdc
-   */
-  async executeWorkflow(industry: string, hackathonUrl?: string): Promise<any> {
+  async executeWorkflow(industry: string): Promise<any> {
     if (!this.agentId) {
       throw new Error('Orchestrator not initialized');
     }
 
-    console.log(`🚀 Starting MarketGap workflow for ${industry}`);
-    
+    console.log(`🚀 Starting MarketGap workflow for ${industry}...`);
+
+    // Phase 1: Parallel research workers
+    await this.runParallelResearch(industry);
+
+    // Phase 2: Gap analysis using Market-Analyzer worker
+    await this.runGapAnalysis(industry);
+
+    // Phase 3: Notify Orchestrator LLM to continue to solution generation (future implementation)
     try {
-      // Update problem_queue with initial workflow status
-      await this.updateWorkflowStatus('workflow_initialization', 'running', `Starting workflow for ${industry}`);
+      const response = await this.client.agents.messages.create(
+        this.agentId,
+        {
+          messages: [
+            {
+              role: 'user',
+              content:
+                `Gap analysis complete for ${industry}. The gap_list block is now populated. Proceed with socialListener and solutionGenerator phases.`,
+            },
+          ],
+        },
+        { timeoutInSeconds: 300 }
+      );
 
-             const hackathonInfo = hackathonUrl ? `HACKATHON URL: ${hackathonUrl}` : '';
-       const workflowPrompt = `
-Execute the MarketGap AI workflow for industry: ${industry}
-
-EXACT SEQUENCE FROM AGENTS.MDC:
-1. marketResearch (async) – crawl PDFs from consulting firms
-2. marketAnalyzer (wait) – produce gap_list  
-3. socialListener (wait) – attach audience personas to selected gap
-4. Push problem_queue to UI → wait for user choice
-5. solutionGenerator (wait) – iterative brainstorming loop
-6. competitorResearch (wait) – evaluate novelty
-7. If hackathon URL → hackathonParser then techStackAdvisor
-8. Emit workflow_complete
-
-TOOLS AVAILABLE:
-- send_message_to_agent_async: For non-blocking tasks (Step 1)
-- send_message_to_agent_and_wait_for_reply: For blocking steps (Steps 2,3,5,6,7)
-- web_search: For research tasks
-- run_code: For data processing
-
-SHARED MEMORY BLOCKS:
-You have access to all shared memory blocks. Update them as you progress through each phase.
-${hackathonInfo}
-
-Begin with Step 1: Create Market-Research agent and start PDF crawling (async).
-`;
-
-      const response = await this.client.agents.messages.create(this.agentId, {
-        messages: [{
-          role: 'user',
-          content: workflowPrompt
-        }]
-      });
-
-      return this.processWorkflowResponse(response);
+      return this.processResponse(response);
 
     } catch (error) {
       console.error('❌ Workflow execution error:', error);
-      await this.updateWorkflowStatus('workflow_execution', 'failed', `Error: ${(error as Error).message}`);
       throw error;
     }
   }
 
   /**
-   * Update workflow status in problem_queue shared memory block
+   * Spin up market research workers and run them in parallel batches (size 3)
    */
-  private async updateWorkflowStatus(phase: string, state: 'pending' | 'running' | 'completed' | 'partial' | 'failed', details?: string): Promise<void> {
-    const status: WorkflowStatus = {
-      phase,
-      state,
-      details,
-      timestamp: new Date().toISOString()
-    };
+  private async runParallelResearch(industry: string): Promise<void> {
+    const groupsBlockId = this.sharedBlockIds.get('consulting_groups');
+    if (!groupsBlockId) throw new Error('consulting_groups block missing');
 
-    const blockId = this.sharedBlocks.get('problem_queue');
-    if (blockId) {
-      await this.client.blocks.modify(blockId, {
-        value: JSON.stringify(status, null, 2)
-      });
-      console.log(`📊 Updated workflow status: ${phase} -> ${state}`);
+    const block = await this.client.blocks.retrieve(groupsBlockId);
+    const firms: string[] = JSON.parse(block.value || '[]');
+    if (!Array.isArray(firms) || firms.length === 0) {
+      throw new Error('consulting_groups block empty');
+    }
+
+    // Create a single Market-Research worker once per workflow
+    if (!this.marketResearchAgentId) {
+      this.marketResearchAgentId = await createMarketResearchAgent(
+        this.client,
+        Array.from(this.sharedBlockIds.values()),
+        industry
+      );
+    }
+
+    console.log(`🔄 Sending research task covering ${firms.length} firms to Market-Research agent ${this.marketResearchAgentId} ...`);
+
+    const instruction = `Research task: For each of the following consulting firms: ${firms.join(", ")} – find the two most recent (${industry}, 2023-2025) whitepapers or publicly available reports. For each firm:
+- Download the PDF (or scrape the HTML summary if PDF unavailable)
+- Extract key findings, pain points, opportunities (bullet points or short paragraphs)
+- Append structured JSON into the consulting_docs shared block using the firm's exact name as the top-level key.
+
+Feel free to parallelise downloads using run_code (e.g. Promise.all in JS) and web_search. Respond "done" when all entries are written.`;
+
+    const workerResponse = await this.client.agents.messages.create(
+      this.marketResearchAgentId,
+      {
+        messages: [
+          {
+            role: 'user',
+            content: instruction
+          }
+        ],
+      },
+      { timeoutInSeconds: 900 }
+    );
+
+    // Combine assistant messages into one blob
+    const combined = workerResponse.messages
+      .filter((m: any) => m.messageType === 'assistant_message')
+      .map((m: any) => m.content)
+      .join('\n');
+
+    if (combined) {
+      const docsId = this.sharedBlockIds.get('consulting_docs');
+      if (docsId) {
+        await this.client.blocks.modify(docsId, { value: combined });
+        console.log('📥 Stored research findings into consulting_docs');
+      }
     }
   }
 
   /**
-   * Process the orchestrator's workflow response
+   * Spin up Market-Analyzer worker (if not existing) and instruct it to perform gap detection.
    */
-  private processWorkflowResponse(response: any) {
+  private async runGapAnalysis(industry: string): Promise<void> {
+    // Ensure analyzer agent exists
+    if (!this.marketAnalyzerAgentId) {
+      this.marketAnalyzerAgentId = await createMarketAnalyzerAgent(
+        this.client,
+        Array.from(this.sharedBlockIds.values())
+      );
+    }
+
+    console.log(
+      `📈 Delegating gap analysis to Market-Analyzer agent ${this.marketAnalyzerAgentId}…`
+    );
+
+    // Send analysis task and wait for completion
+    const response = await runMarketAnalysis(
+      this.client,
+      this.marketAnalyzerAgentId,
+      industry
+    );
+
+    // Optional: parse assistant messages to confirm completion
+    const finished = response.messages.some(
+      (m: any) =>
+        m.messageType === 'assistant_message' &&
+        (m.content?.toLowerCase().includes('done') ||
+          m.content?.toLowerCase().includes('completed'))
+    );
+
+    if (finished) {
+      console.log('✅ Gap analysis completed and stored in gap_list');
+
+      // Update workflow_state block to indicate completion
+      const workflowStateId = this.sharedBlockIds.get('workflow_state');
+      if (workflowStateId) {
+        try {
+          await this.client.blocks.modify(workflowStateId, {
+            value: `Gap analysis completed for ${industry} at ${new Date().toISOString()}`,
+          });
+        } catch (err) {
+          console.warn('⚠️ Failed to update workflow_state block:', err);
+        }
+      }
+
+      // TODO: Emit WebSocket "phaseComplete" event (handled server-side)
+    } else {
+      console.warn('⚠️ Gap analysis response did not include completion signal');
+    }
+  }
+
+  /**
+   * Process agent response and extract tool calls and results
+   */
+  private processResponse(response: any) {
     const result = {
       success: true,
-      orchestratorId: this.agentId,
+      agentId: this.agentId,
       messages: [] as string[],
       toolCalls: [] as any[],
-      phase: 'workflow_started',
       timestamp: new Date().toISOString()
     };
 
-    if (response.messages) {
-      for (const message of response.messages) {
-        if (message.messageType === 'assistant_message') {
-          console.log('🎯 Orchestrator:', message.content);
-          result.messages.push(message.content);
-        } else if (message.messageType === 'tool_call_message') {
-          console.log(`🔧 Tool Called: ${message.toolCall?.name || 'unknown'}`);
-          result.toolCalls.push(message.toolCall);
-        }
+    for (const message of response.messages) {
+      if (message.messageType === 'assistant_message') {
+        result.messages.push(message.content);
+        console.log('🎯 Orchestrator:', message.content);
+      } else if (message.messageType === 'tool_call_message') {
+        result.toolCalls.push(message.toolCall);
+        console.log(`🔧 Tool Called: ${message.toolCall.name}`);
+        console.log(`📄 Arguments:`, message.toolCall.arguments);
+      } else if (message.messageType === 'tool_return_message') {
+        console.log(`📊 Tool Result:`, message.toolReturn);
       }
     }
 
@@ -303,7 +310,7 @@ Begin with Step 1: Create Market-Research agent and start PDF crawling (async).
   }
 
   /**
-   * Get current workflow status from shared memory blocks
+   * Get current workflow status by reading shared memory blocks
    */
   async getWorkflowStatus(): Promise<any> {
     if (!this.agentId) {
@@ -311,58 +318,98 @@ Begin with Step 1: Create Market-Research agent and start PDF crawling (async).
     }
 
     try {
-      const status: any = {
-        orchestratorId: this.agentId,
+      const status = {
+        agentId: this.agentId,
         timestamp: new Date().toISOString(),
-        sharedBlocks: {},
-        workerAgents: Object.fromEntries(this.workerAgents)
+        sharedBlocks: {} as any
       };
 
-             // Read each shared memory block
-       for (const [label, blockId] of Array.from(this.sharedBlocks.entries())) {
-         try {
-           const blockData = await this.client.blocks.retrieve(blockId);
-           status.sharedBlocks[label] = {
-             value: blockData.value,
-             lastUpdated: (blockData as any).lastUpdated || new Date().toISOString(),
-             size: blockData.value?.length || 0
-           };
-         } catch (error) {
-           status.sharedBlocks[label] = { error: `Failed to read block: ${error}` };
-         }
-       }
+      // Read shared memory blocks
+      const entries = Array.from(this.sharedBlockIds.entries());
+      for (const [label, blockId] of entries) {
+        try {
+          const block = await this.client.blocks.retrieve(blockId);
+          status.sharedBlocks[label] = {
+            value: block.value,
+            size: block.value?.length || 0,
+            lastUpdated: new Date().toISOString()
+          };
+        } catch (error) {
+          status.sharedBlocks[label] = { error: `Failed to read: ${error}` };
+        }
+      }
 
       return status;
     } catch (error) {
-      console.error('❌ Error getting workflow status:', error);
       return { error: (error as Error).message };
     }
   }
 
   /**
-   * Update a specific shared memory block
+   * Check if research data has been stored
    */
-  async updateSharedBlock(label: string, value: string): Promise<void> {
-    const blockId = this.sharedBlocks.get(label);
-    if (!blockId) {
-      throw new Error(`Shared block ${label} not found`);
+  async checkResearchProgress(): Promise<any> {
+    const consultingDocsId = this.sharedBlockIds.get('consulting_docs');
+    if (!consultingDocsId) {
+      return { error: 'Consulting docs block not found' };
     }
 
-    await this.client.blocks.modify(blockId, { value });
-    console.log(`📝 Updated shared block: ${label}`);
+    try {
+      const block = await this.client.blocks.retrieve(consultingDocsId);
+      const hasData = block.value && block.value !== 'No research data yet' && block.value.length > 50;
+      
+      return {
+        success: true,
+        consultingDocsSize: block.value?.length || 0,
+        consultingDocsContent: block.value?.substring(0, 500) + (block.value && block.value.length > 500 ? '...' : ''),
+        dataStored: hasData,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return { error: (error as Error).message };
+    }
   }
 
-  /**
-   * Get agent ID
-   */
   getAgentId(): string | null {
     return this.agentId;
   }
 
   /**
-   * Get shared block IDs for worker agents
+   * Generic helper to update any shared memory block by label.
+   * Exposed for test scripts and frontend utilities.
    */
-  getSharedBlockIds(): string[] {
-    return Array.from(this.sharedBlocks.values());
+  async updateSharedBlock(label: string, newValue: string): Promise<void> {
+    const blockId = this.sharedBlockIds.get(label);
+    if (!blockId) throw new Error(`Shared block ${label} not found`);
+
+    await this.client.blocks.modify(blockId, { value: newValue });
+  }
+
+  /**
+   * Quick helper to check whether gap_list has been populated (size heuristic).
+   */
+  async checkAnalysisProgress(): Promise<any> {
+    const gapListId = this.sharedBlockIds.get('gap_list');
+    if (!gapListId) return { error: 'gap_list block not found' };
+
+    try {
+      const block = await this.client.blocks.retrieve(gapListId);
+      const hasData =
+        block.value &&
+        block.value !== 'No gaps identified yet' &&
+        block.value.length > 20;
+
+      return {
+        success: true,
+        gapListSize: block.value?.length || 0,
+        gapListPreview:
+          block.value?.substring(0, 500) +
+          (block.value && block.value.length > 500 ? '...' : ''),
+        analysisCompleted: hasData,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return { error: (error as Error).message };
+    }
   }
 } 

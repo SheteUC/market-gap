@@ -31,7 +31,7 @@ export function WebsocketProvider({ children }: WebsocketProviderProps) {
       setIsConnected(true);
       
       // Simulate phase completions
-      const phases = ['/industry', '/consulting', '/research', '/gaps'];
+      const phases = ['/industry', '/research', '/gaps'];
       phases.forEach((phase, index) => {
         setTimeout(() => {
           setCompletedPhases(prev => [...prev, phase]);

@@ -52,7 +52,6 @@ async function testLettaAgents() {
     await orchestrator.updateSharedBlock('consulting_groups', JSON.stringify([
       'McKinsey & Company',
       'Boston Consulting Group',
-      'Bain & Company',
       'Accenture',
       'Deloitte',
       'PwC'

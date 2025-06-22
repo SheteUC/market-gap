@@ -54,7 +54,7 @@ export function DocsCrawlerProgress() {
 
   const fetchWorkflowStatus = async () => {
     try {
-      const response = await fetch('/api/simple-workflow', {
+      const response = await fetch('/api/letta-workflow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'status' }),
